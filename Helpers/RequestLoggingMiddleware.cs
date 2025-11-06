@@ -28,10 +28,10 @@ public class RequestLoggingMiddleware
         }
 
         // Log all request headers
-        foreach (var header in context.Request.Headers)
-        {
-            _logger.LogInformation("Header: {HeaderName} = {HeaderValue}", header.Key, header.Value.ToString());
-        }
+        // foreach (var header in context.Request.Headers)
+        // {
+        //     _logger.LogInformation("Header: {HeaderName} = {HeaderValue}", header.Key, header.Value.ToString());
+        // }
 
         // Log request body
         context.Request.EnableBuffering(); // Allow reading body multiple times
