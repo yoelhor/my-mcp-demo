@@ -16,11 +16,7 @@ public class RequestLoggingMiddleware
         // Log Authorization header
         if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
-            // Mask sensitive parts of the token for security
-            var maskedAuth = authHeader.ToString().Length > 20
-                ? authHeader.ToString().Substring(0, 20) + "..."
-                : authHeader.ToString();
-            _logger.LogInformation("Authorization Header: {AuthHeader}", maskedAuth);
+            _logger.LogInformation("Authorization Header found: {AuthHeader}", authHeader.ToString());
         }
         else
         {
