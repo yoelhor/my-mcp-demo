@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp/anonymous-mcp
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
     runs-on: windows-latest
@@ -64,5 +64,6 @@ jobs:
           app-name: 'my-mcp'
           slot-name: 'Production'
           package: .
+          target-path: '/home/site/wwwroot/anonymous-mcp'
           #Add the virtual-application parameter
           virtual-application: 'anonymous-mcp'          
