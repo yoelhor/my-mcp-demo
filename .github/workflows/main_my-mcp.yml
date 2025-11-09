@@ -66,26 +66,3 @@ jobs:
           app-name: 'my-mcp'
           slot-name: 'Production'
           package: .
-
-      - name: Configure Virtual Applications
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            # Configure virtual applications for both projects
-            az webapp config set --name my-mcp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --virtual-applications '[
-                {
-                  "virtualPath": "/anonymous-mcp",
-                  "physicalPath": "site\\wwwroot\\anonymous-mcp",
-                  "preloadEnabled": false
-                },
-                {
-                  "virtualPath": "/protected-mcp",
-                  "physicalPath": "site\\wwwroot\\protected-mcp",
-                  "preloadEnabled": false
-                }
-              ]'
-            
-            Write-Host "Virtual applications configured successfully"
-            Write-Host "Anonymous MCP: https://my-mcp.azurewebsites.net/anonymous-mcp"
-            Write-Host "Protected MCP: https://my-mcp.azurewebsites.net/protected-mcp"  

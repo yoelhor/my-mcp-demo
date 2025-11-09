@@ -31,8 +31,8 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.MapMcp();
 
-// Optional: A simple HTTP endpoint for testing
-app.MapGet("/info", () => "Hello World!");
+// Provide information about the server
+app.MapGet("/info", () => "This is an anonymous MCP server.");
 
 app.Run();
 
