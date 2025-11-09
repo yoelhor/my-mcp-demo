@@ -23,13 +23,15 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Build with dotnet
-        # Navigate to the source folder and build
-        run: dotnet build anonymous-mcp --configuration Release
+      - name: Build and publish anonymous-mcp
+        run: |
+          dotnet build anonymous-mcp --configuration Release
+          dotnet publish anonymous-mcp -c Release -o "${{env.DOTNET_ROOT}}/myapp/anonymous-mcp"
 
-      - name: dotnet publish
-        # Publish from the source folder, outputting to a known location
-        run: dotnet publish anonymous-mcp -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Build and publish protected-mcp
+        run: |
+          dotnet build protected-mcp --configuration Release
+          dotnet publish protected-mcp -c Release -o "${{env.DOTNET_ROOT}}/myapp/protected-mcp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -64,4 +66,26 @@ jobs:
           app-name: 'my-mcp'
           slot-name: 'Production'
           package: .
-          target-path: '/home/site/wwwroot/anonymous-mcp'  
+
+      - name: Configure Virtual Applications
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            # Configure virtual applications for both projects
+            az webapp config set --name my-mcp --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --virtual-applications '[
+                {
+                  "virtualPath": "/anonymous-mcp",
+                  "physicalPath": "site\\wwwroot\\anonymous-mcp",
+                  "preloadEnabled": false
+                },
+                {
+                  "virtualPath": "/protected-mcp",
+                  "physicalPath": "site\\wwwroot\\protected-mcp",
+                  "preloadEnabled": false
+                }
+              ]'
+            
+            Write-Host "Virtual applications configured successfully"
+            Write-Host "Anonymous MCP: https://my-mcp.azurewebsites.net/anonymous-mcp"
+            Write-Host "Protected MCP: https://my-mcp.azurewebsites.net/protected-mcp"  
