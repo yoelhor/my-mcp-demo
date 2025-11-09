@@ -32,7 +32,12 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapMcp();
 
 // Provide information about the server
-app.MapGet("/info", () => "This is an anonymous MCP server.");
+app.MapGet("/info", () =>
+{
+    var version = System.Reflection.Assembly.GetExecutingAssembly()
+        .GetName().Version?.ToString() ?? "Unknown";
+    return new { Name = "Anonymous MCP Server", Version = version };
+});
 
 app.Run();
 
