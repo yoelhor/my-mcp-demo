@@ -64,6 +64,4 @@ jobs:
           app-name: 'my-mcp'
           slot-name: 'Production'
           package: .
-          target-path: '/home/site/wwwroot/anonymous-mcp'
-          #Add the virtual-application parameter
-          virtual-application: 'anonymous-mcp'          
+          target-path: '/home/site/wwwroot/anonymous-mcp'  
