@@ -1,7 +1,11 @@
 {
 	"servers": {
-		"my-mcp-server-1177d91b": {
+		"my-mcp-server-local": {
 			"url": "http://localhost:5086/",
+			"type": "http"
+		},
+		"my-mcp-server-remote": {
+			"url": "https://my-mcp-gkcwbzdef8a7h6c7.westeurope-01.azurewebsites.net/",
 			"type": "http"
 		}
 	},

@@ -1,35 +1,38 @@
 using System.Text;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
-
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
+    private TelemetryClient _telemetry;
+    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, TelemetryClient telemetry)
     {
         _next = next;
         _logger = logger;
+        _telemetry = telemetry;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Log Authorization header
+        // Log request information
+        string page = "", method = "", requestBody = "";
+        bool isAuthorizationHeaderProvided = false;
+
+
+        // Get Authorization header
         if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
             _logger.LogInformation("Authorization Header found: {AuthHeader}", authHeader.ToString());
+            isAuthorizationHeaderProvided = true;
         }
         else
         {
             _logger.LogInformation("No Authorization header present");
         }
 
-        // Log all request headers
-        // foreach (var header in context.Request.Headers)
-        // {
-        //     _logger.LogInformation("Header: {HeaderName} = {HeaderValue}", header.Key, header.Value.ToString());
-        // }
-
-        // Log request body
+        // Get the request body
         context.Request.EnableBuffering(); // Allow reading body multiple times
 
         if (context.Request.ContentLength > 0)
@@ -41,14 +44,53 @@ public class RequestLoggingMiddleware
                 bufferSize: 1024,
                 leaveOpen: true);
 
-            var body = await reader.ReadToEndAsync();
+            requestBody = await reader.ReadToEndAsync();
             context.Request.Body.Position = 0; // Reset stream position
 
-            _logger.LogInformation("Request Body: {RequestBody}", body);
+            // Track the full request using the logger
+            _logger.LogInformation("Request Body: {RequestBody}", requestBody);
+        }
+
+        // Get the page name
+        if (context.Request.Path.HasValue && context.Request.Path.Value != "/")
+        {
+            page = context.Request.Path;
+        }
+        else if (context.Request.Path.HasValue && context.Request.Path.Value == "/" && context.Request.Method == "POST")
+        {
+            // If the page is "/" and the type is POST, then set page to "MCP tool"
+            page = "MCP tool";
+
+            // Get the MCP method name from the body
+            try
+            {
+                var bodyJson = System.Text.Json.JsonDocument.Parse(requestBody);
+                if (bodyJson.RootElement.TryGetProperty("method", out var methodElement))
+                {
+                    method = methodElement.GetString() ?? "Unknown method";
+                }
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                page = "Unknown page";
+            }
         }
         else
         {
-            _logger.LogInformation("Request body is empty");
+            page = "Unknown page";
+        }
+
+        // Track the request using Application Insights
+        // We only track page views for the root path and /info
+        if (context.Request.Path.Value == "/" || context.Request.Path.Value == "/info")
+        {
+            PageViewTelemetry pageView = new PageViewTelemetry(page);
+
+            // Type of the page
+            pageView.Properties.Add("McpMethod", method);
+            pageView.Properties.Add("BearerTokenPresent", isAuthorizationHeaderProvided.ToString());
+
+            _telemetry.TrackPageView(pageView);
         }
 
         await _next(context);

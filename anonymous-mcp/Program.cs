@@ -1,5 +1,6 @@
 // Program.cs
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging.AzureAppServices;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
@@ -36,16 +37,6 @@ app.MapGet("/info", (TelemetryClient telemetryClient) =>
 {
     var version = System.Reflection.Assembly.GetExecutingAssembly()
         .GetName().Version?.ToString() ?? "Unknown";
-    
-    // Track event with custom properties
-    var properties = new Dictionary<string, string>
-    {
-        { "ServerName", "Anonymous MCP Server" },
-        { "Version", version },
-        { "Endpoint", "/info" }
-    };
-
-    telemetryClient.TrackEvent("InfoEndpointCalled", new Dictionary<string, string>{ { "ServerName", "Anonymous MCP Server" }, { "Version", version } });
 
     return new { Name = "Anonymous MCP Server", Version = version };
 });
@@ -62,5 +53,5 @@ public static class EchoTool
     public static string ContentLength(string message) => $"Your message is {message.Length} characters long.";
 
     [McpServerTool, Description("Returns the MCP version.")]
-    public static string GetVersion() => $"MCP (anonymous) Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
+    public static string GetVersion() => $"MCP (anonymous) Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version} Server: {(string.IsNullOrEmpty(Environment.MachineName) ? "Unknown" : Environment.MachineName)}";
 }
