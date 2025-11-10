@@ -32,16 +32,16 @@ public class RequestLoggingMiddleware
             _logger.LogInformation("No Authorization header present");
         }
 
-        // Get the x-custom-session-id header
+        // Get the x-custom-thread-id header
         string sessionId = null;
-        if (context.Request.Headers.TryGetValue("x-custom-session-id", out var sessionIdHeader))
+        if (context.Request.Headers.TryGetValue("x-custom-thread-id", out var sessionIdHeader))
         {
             sessionId = sessionIdHeader.ToString();
-            _logger.LogInformation("x-custom-session-id Header found: {SessionId}", sessionId);
+            _logger.LogInformation("x-custom-thread-id Header found: {SessionId}", sessionId);
         }
         else
         {
-            _logger.LogInformation("No x-custom-session-id header present");
+            _logger.LogInformation("No x-custom-thread-id header present");
         }
 
         // Get the request body
@@ -107,7 +107,7 @@ public class RequestLoggingMiddleware
             // The agent session ID
             if (!string.IsNullOrEmpty(sessionId))
             {
-                pageView.Properties.Add("AgentSessionId", sessionId);
+                pageView.Properties.Add("AgentThreadId", sessionId);
             }
             
             // Whether the Authorization header was provided
