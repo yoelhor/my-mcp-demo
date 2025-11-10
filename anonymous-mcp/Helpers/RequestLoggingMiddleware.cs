@@ -6,7 +6,7 @@ public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
-    private TelemetryClient _telemetry;
+    private readonly TelemetryClient _telemetry;
     public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, TelemetryClient telemetry)
     {
         _next = next;
@@ -30,6 +30,18 @@ public class RequestLoggingMiddleware
         else
         {
             _logger.LogInformation("No Authorization header present");
+        }
+
+        // Get the x-custom-session-id header
+        string sessionId = null;
+        if (context.Request.Headers.TryGetValue("x-custom-session-id", out var sessionIdHeader))
+        {
+            sessionId = sessionIdHeader.ToString();
+            _logger.LogInformation("x-custom-session-id Header found: {SessionId}", sessionId);
+        }
+        else
+        {
+            _logger.LogInformation("No x-custom-session-id header present");
         }
 
         // Get the request body
@@ -86,8 +98,19 @@ public class RequestLoggingMiddleware
         {
             PageViewTelemetry pageView = new PageViewTelemetry(page);
 
-            // Type of the page
-            pageView.Properties.Add("McpMethod", method);
+            // The MCP method
+            if (!string.IsNullOrEmpty(method))
+            {
+                pageView.Properties.Add("McpMethod", method);
+            }
+
+            // The agent session ID
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                pageView.Properties.Add("AgentSessionId", sessionId);
+            }
+            
+            // Whether the Authorization header was provided
             pageView.Properties.Add("BearerTokenPresent", isAuthorizationHeaderProvided.ToString());
 
             _telemetry.TrackPageView(pageView);
