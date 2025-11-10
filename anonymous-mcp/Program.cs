@@ -1,9 +1,13 @@
 // Program.cs
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.AzureAppServices;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// The following line enables Application Insights telemetry collection.
+builder.Services.AddApplicationInsightsTelemetry();
 
 // Add Azure stream log service
 builder.Logging.AddAzureWebAppDiagnostics();
@@ -13,10 +17,6 @@ builder.Services.Configure<AzureFileLoggerOptions>(options =>
     options.FileSizeLimit = 50 * 1024;
     options.RetainedFileCountLimit = 5;
 });
-// builder.Logging.AddFilter((provider, category, logLevel) =>
-// {
-//     return provider!.ToLower().Contains("");
-// });
 
 builder.Services.AddMcpServer()
     // Use HTTP transport
@@ -32,10 +32,21 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapMcp();
 
 // Provide information about the server
-app.MapGet("/info", () =>
+app.MapGet("/info", (TelemetryClient telemetryClient) =>
 {
     var version = System.Reflection.Assembly.GetExecutingAssembly()
         .GetName().Version?.ToString() ?? "Unknown";
+    
+    // Track event with custom properties
+    var properties = new Dictionary<string, string>
+    {
+        { "ServerName", "Anonymous MCP Server" },
+        { "Version", version },
+        { "Endpoint", "/info" }
+    };
+
+    telemetryClient.TrackEvent("InfoEndpointCalled", new Dictionary<string, string>{ { "ServerName", "Anonymous MCP Server" }, { "Version", version } });
+
     return new { Name = "Anonymous MCP Server", Version = version };
 });
 
