@@ -19,7 +19,16 @@ builder.Services.Configure<AzureFileLoggerOptions>(options =>
     options.RetainedFileCountLimit = 5;
 });
 
-builder.Services.AddMcpServer()
+builder.Services.AddMcpServer(options =>
+{
+    options.ServerInfo = new()
+    {
+        Name = "Welcome to the Zava Travel Management Center. This MCP server is your comprehensive platform designed for efficient travel management. Gain access to specialized tools for seamless interaction with Zava Travel, including features for booking your next flight and securing exclusive hotel deals.",
+        Title = "Anonymous MCP Server",
+        Version = System.Reflection.Assembly.GetExecutingAssembly()
+            .GetName().Version?.ToString() ?? "1.0.0"
+    };
+})
     // Use HTTP transport
     .WithHttpTransport()
 
