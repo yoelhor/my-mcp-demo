@@ -7,8 +7,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'anonymous-mcp/**'
   workflow_dispatch:
 
 jobs:
@@ -26,10 +24,10 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Build with dotnet
-        run: dotnet build anonymous-mcp/my-mcp-demo.csproj --configuration Release
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish anonymous-mcp/my-mcp-demo.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -53,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_56D7BDD4B7F64EB59FBFC50D02DE5753 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DC03B476E8EA4D44AC819387F278A53D }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B44EC2A6C1614056B553B8D2B6747047 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_63A2E07658CE4F97B2DED3620288F6A6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EE0F0D5CDABF495EB555FB160824797A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E3246F7E6A8B42A7ADADC8635A0F8DC3 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
